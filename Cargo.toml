@@ -1,0 +1,21 @@
+[workspace]
+members = ["crates/tc-core", "crates/tc-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[workspace.dependencies]
+anyhow = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4.5", features = ["derive", "env"] }
+crossterm = "0.29"
+dirs = "6.0"
+hostname = "0.4"
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sysinfo = "0.36"
+uuid = { version = "1.18", features = ["v4", "serde"] }

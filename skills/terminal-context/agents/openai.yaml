@@ -1,0 +1,7 @@
+interface:
+  display_name: "Terminal Context"
+  short_description: "Name and manage terminal work sessions"
+  default_prompt: "Use $terminal-context to organize my project terminals and show what each one is doing."
+
+policy:
+  allow_implicit_invocation: true
