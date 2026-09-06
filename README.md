@@ -16,6 +16,12 @@ The first nine planned milestones are included:
 
 The mouse-hover overlay is intentionally reserved for the next milestone because it requires terminal- and desktop-specific APIs.
 
+## Documentation
+
+- [中文用户使用手册](docs/USER_GUIDE.zh-CN.md)
+- [Terminal Context CLI reference](skills/terminal-context/references/cli.md)
+- [Platform support](skills/terminal-context/references/platform-support.md)
+
 ## Build
 
 ```powershell
@@ -47,14 +53,16 @@ $env:TERMCTX_ID = $id
 Install PowerShell integration:
 
 ```powershell
-./installers/install.ps1 -BinaryPath ../data/target/release/tc.exe -InstallCodexSkill
+./installers/install.ps1 -BinaryPath ../data/target/release/tc.exe
 ```
 
 Install Bash integration after building on Linux:
 
 ```bash
-./installers/install.sh ./target/release/tc --install-skill
+./installers/install.sh ./target/release/tc
 ```
+
+See the [中文用户使用手册](docs/USER_GUIDE.zh-CN.md) to install the Codex skill in the current official user skill location.
 
 After installation, a new interactive terminal asks for a work name and description. Useful shell commands are:
 
