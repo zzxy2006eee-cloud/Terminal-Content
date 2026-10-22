@@ -24,6 +24,10 @@ fi
 rm -f -- "$HOME/.local/bin/tc"
 rm -rf -- "$install_root/shell"
 if [[ "$remove_skill" == "--remove-skill" ]]; then
-    rm -rf -- "${CODEX_HOME:-$HOME/.codex}/skills/terminal-context"
+    rm -rf -- "$HOME/.agents/skills/terminal-context"
+    rm -rf -- "$HOME/.codex/skills/terminal-context"
+    if [[ -n "${CODEX_HOME:-}" ]]; then
+        rm -rf -- "$CODEX_HOME/skills/terminal-context"
+    fi
 fi
 printf 'Terminal Context removed. Database retained under %s.\n' "$install_root"

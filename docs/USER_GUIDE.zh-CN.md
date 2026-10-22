@@ -37,58 +37,56 @@ git clone https://github.com/zzxy2006eee-cloud/Terminal-Content.git
 cd Terminal-Content
 ```
 
-如果使用当前开发机，项目已经位于 `E:\new_skills\bash_skill`，Windows 可执行文件已经位于 `E:\new_skills\data\target\release\tc.exe`，可以跳过编译步骤。
-
 ## 2. Windows 安装
 
-### 2.1 从源码编译
+### 2.1 推荐：一键安装
 
-需要先安装 Rust 工具链，然后在仓库根目录运行：
-
-```powershell
-cargo build --release --workspace
-```
-
-生成的程序位于：
-
-```text
-target\release\tc.exe
-```
-
-### 2.2 安装程序和 PowerShell 集成
-
-从普通克隆目录安装：
+在仓库根目录打开 PowerShell，运行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\installers\install.ps1 `
-  -BinaryPath .\target\release\tc.exe
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
+  -InstallCodexSkill `
+  -ConfigureExecutionPolicy
 ```
 
-在当前开发机使用已经编译好的程序：
+安装器询问时输入 `y`。这条命令会一次完成：
 
-```powershell
-Set-Location E:\new_skills\bash_skill
-
-powershell -ExecutionPolicy Bypass -File .\installers\install.ps1 `
-  -BinaryPath E:\new_skills\data\target\release\tc.exe
-```
-
-安装器会询问是否安装并更新 PowerShell Profile。输入 `y` 后，它会：
-
+- 自动查找已经编译的 `tc.exe`；找不到时使用 Cargo 编译 release 版本。
 - 把 `tc.exe` 安装到当前用户的本地应用数据目录。
-- 把程序目录加入用户 `PATH`。
-- 安装 PowerShell 模块。
-- 在 PowerShell Profile 中加入带标记的加载区块。
+- 把程序目录加入当前用户 `PATH`。
+- 安装 PowerShell 模块并更新 PowerShell Profile。
+- 把 Codex Skill 安装到 `%USERPROFILE%\.agents\skills\terminal-context`。
+- 运行 `tc doctor` 并检查 `tc-start` 是否可用。
 - 默认启用新交互式终端的命名询问。
 
 完成后关闭当前 PowerShell，再打开一个新 PowerShell。
 
+`-ExecutionPolicy Bypass` 只用于这次安装进程。`-ConfigureExecutionPolicy` 会在确有需要时，把当前用户的长期策略设为 `RemoteSigned`，不需要管理员权限，也不会修改计算机级策略。如果电脑由组织策略管理，安装器会停止并给出说明。若不希望安装器更改当前用户策略，可以省略 `-ConfigureExecutionPolicy`。
+
+安装器会依次查找：
+
+1. 项目相邻 `data\target\release\tc.exe`。
+2. 仓库内 `target\release\tc.exe`。
+3. 如果都不存在，使用 Cargo 构建到相邻 `data\target`。
+
+因此，首次从源码安装且还没有 `tc.exe` 时，需要先安装 [Rust 工具链](https://rustup.rs/)。
+
+### 2.2 使用指定的 tc.exe
+
+已有编译结果时，可以显式指定：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
+  -BinaryPath E:\new_skills\data\target\release\tc.exe `
+  -InstallCodexSkill `
+  -ConfigureExecutionPolicy
+```
+
 如果不希望新终端自动询问名称，可在安装时加入：
 
 ```powershell
-.\installers\install.ps1 `
-  -BinaryPath .\target\release\tc.exe `
-  -NoAutoPrompt
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
+  -InstallCodexSkill -ConfigureExecutionPolicy -NoAutoPrompt
 ```
 
 ## 3. Ubuntu 和 WSL 安装
@@ -97,7 +95,7 @@ powershell -ExecutionPolicy Bypass -File .\installers\install.ps1 `
 
 ```bash
 cargo build --release --workspace
-./installers/install.sh ./target/release/tc
+./installers/install.sh ./target/release/tc --install-skill
 ```
 
 安装器询问时输入 `y`，然后重新加载 Bash 配置：
@@ -111,17 +109,20 @@ source ~/.bashrc
 - 把 `tc` 安装到 `~/.local/bin/tc`。
 - 安装 Bash 集成脚本。
 - 在 `~/.bashrc` 中加入带标记的加载区块。
+- 把 Codex Skill 安装到 `~/.agents/skills/terminal-context`。
 - 默认启用新交互式终端的命名询问。
 
 WSL 集成会优先使用 Linux 原生 `tc`。如果没有原生程序，但能从 WSL 调用 `tc.exe`，则会回退使用 Windows 程序。使用 Windows 程序时，Windows 与 WSL 会话可以保存在同一个 Windows 数据库中。
 
-## 4. 安装 Codex Skill
+## 4. 单独安装 Codex Skill
 
 根据 [OpenAI 官方 Codex Skills 文档](https://developers.openai.com/codex/skills)，用户级 Skill 推荐放在：
 
 ```text
 $HOME/.agents/skills
 ```
+
+第 2 节推荐的 Windows 安装命令和第 3 节的 Bash 安装命令已经自动安装 Skill。只有在你没有使用 `-InstallCodexSkill` 或 `--install-skill` 时，才需要按本节手动复制。
 
 ### 4.1 Windows
 
@@ -151,7 +152,7 @@ Terminal Context
 Name and manage terminal work sessions
 ```
 
-> 项目当前安装器的 `-InstallCodexSkill` 和 `--install-skill` 选项使用 `$CODEX_HOME/skills` 或 `~/.codex/skills`。为了符合当前官方文档，建议暂时按本节手动安装到 `~/.agents/skills`。
+旧版本安装器可能在 `~/.codex/skills/terminal-context` 或自定义 `$CODEX_HOME/skills/terminal-context` 留下副本。新版安装时会提示，但不会擅自删除；确认新目录工作正常后，可通过第 16 节的卸载命令清理新旧副本，再按需重新安装。
 
 ## 5. 验证安装
 
@@ -447,6 +448,18 @@ command -v tc
 
 如果仍然找不到，请重新运行对应平台的安装器，或通过 `TERM_CONTEXT_BIN` 指向可执行文件。
 
+### PowerShell 提示“在此系统上禁止运行脚本”
+
+使用第 2 节推荐命令，其中 `-ExecutionPolicy Bypass` 只放宽安装进程。若安装后新终端仍然阻止加载模块，重新运行安装器并保留 `-ConfigureExecutionPolicy`；它只会在需要时把 `CurrentUser` 设置为 `RemoteSigned`。
+
+查看当前策略：
+
+```powershell
+Get-ExecutionPolicy -List
+```
+
+如果 `MachinePolicy` 或 `UserPolicy` 由组织统一设置，请联系管理员，不要尝试绕过组织策略。
+
 ### `tc-run` 提示当前 Shell 未连接
 
 先运行：
@@ -505,20 +518,16 @@ tc-dashboard
 ### Windows
 
 ```powershell
-.\installers\uninstall.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\uninstall.ps1 `
+  -RemoveCodexSkill
 ```
 
-删除按官方用户目录安装的 Skill：
-
-```powershell
-Remove-Item -LiteralPath "$HOME\.agents\skills\terminal-context" -Recurse
-```
+`-RemoveCodexSkill` 会删除 `~/.agents/skills/terminal-context`，也会清理旧版安装器留在 `~/.codex/skills/terminal-context` 或当前 `$CODEX_HOME/skills/terminal-context` 的副本。卸载器不会回退 PowerShell 执行策略，也不会删除历史会话数据库。
 
 ### Ubuntu 或 WSL
 
 ```bash
-./installers/uninstall.sh
-rm -rf -- "$HOME/.agents/skills/terminal-context"
+./installers/uninstall.sh --remove-skill
 ```
 
 卸载器默认保留历史会话数据库。

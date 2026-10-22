@@ -39,11 +39,17 @@ path.write_text(text.rstrip() + "\n" + block, encoding="utf-8")
 PY
 
 if [[ "$install_skill" == "--install-skill" ]]; then
-    codex_root="${CODEX_HOME:-$HOME/.codex}"
-    skill_target="$codex_root/skills/terminal-context"
+    skill_target="$HOME/.agents/skills/terminal-context"
     mkdir -p "$skill_target"
     cp -R "$repo_root/skills/terminal-context/." "$skill_target/"
     printf 'Installed personal Codex skill to %s.\n' "$skill_target"
+    legacy_skill="$HOME/.codex/skills/terminal-context"
+    if [[ -d "$legacy_skill" ]]; then
+        printf 'Warning: a legacy Skill copy still exists at %s.\n' "$legacy_skill" >&2
+    fi
+    if [[ -n "${CODEX_HOME:-}" && -d "$CODEX_HOME/skills/terminal-context" ]]; then
+        printf 'Warning: a legacy Skill copy still exists at %s.\n' "$CODEX_HOME/skills/terminal-context" >&2
+    fi
 fi
 
 printf 'Installed. Run: source %q\n' "$bashrc"

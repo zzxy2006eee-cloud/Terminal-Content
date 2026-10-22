@@ -50,19 +50,34 @@ $env:TERMCTX_ID = $id
 ./target/release/tc.exe tui
 ```
 
-Install PowerShell integration:
+Install the Windows program, PowerShell integration, and Codex Skill in one step:
 
 ```powershell
-./installers/install.ps1 -BinaryPath ../data/target/release/tc.exe
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
+  -InstallCodexSkill -ConfigureExecutionPolicy
 ```
 
-Install Bash integration after building on Linux:
+The installer reuses an existing release binary or builds one with Cargo, updates the
+current-user `PATH` and PowerShell profile, installs the Skill under
+`$HOME/.agents/skills/terminal-context`, and runs `tc doctor`. The execution-policy
+option only sets `CurrentUser` to `RemoteSigned` when the current policy would block
+the local module; omit it if you do not want that setting changed.
+
+To use an existing executable instead of auto-building:
+
+```powershell
+.\installers\install.ps1 -BinaryPath ..\data\target\release\tc.exe -InstallCodexSkill
+```
+
+Install Bash integration and the Codex Skill after building on Linux:
 
 ```bash
-./installers/install.sh ./target/release/tc
+./installers/install.sh ./target/release/tc --install-skill
 ```
 
-See the [中文用户使用手册](docs/USER_GUIDE.zh-CN.md) to install the Codex skill in the current official user skill location.
+Both installers use the current user-level Skill location, `$HOME/.agents/skills`.
+See the [中文用户使用手册](docs/USER_GUIDE.zh-CN.md) for installation, migration,
+verification, and uninstall instructions.
 
 After installation, a new interactive terminal asks for a work name and description. Useful shell commands are:
 
