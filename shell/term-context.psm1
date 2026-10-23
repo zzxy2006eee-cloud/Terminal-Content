@@ -145,6 +145,14 @@ function Initialize-TermContext {
     if ([Console]::IsInputRedirected -or [Console]::IsOutputRedirected) { return }
     if ($Host.Name -notmatch 'ConsoleHost|Visual Studio Code Host') { return }
 
+    # Profiles also run for powershell.exe -Command/-File. Prompting there can
+    # block automation indefinitely and leave tc.exe locked during upgrades.
+    $nonInteractiveLaunchOptions = @('c', 'command', 'e', 'enc', 'encodedcommand', 'f', 'file')
+    foreach ($processArgument in [Environment]::GetCommandLineArgs() | Select-Object -Skip 1) {
+        $normalizedArgument = $processArgument.TrimStart('-', '/').ToLowerInvariant()
+        if ($normalizedArgument -in $nonInteractiveLaunchOptions) { return }
+    }
+
     try { Start-TermContext | Out-Null } catch {
         Write-Warning "Terminal Context startup skipped: $($_.Exception.Message)"
     }

@@ -79,7 +79,6 @@ try {
         SkipPathUpdate   = $true
     }
     & (Join-Path $repoRoot 'installers\install.ps1') @installArguments
-    & (Join-Path $repoRoot 'installers\install.ps1') @installArguments
 
     $installedBinary = Join-Path $installRoot 'bin\tc.exe'
     $installedModule = Join-Path $installRoot 'shell\term-context.psm1'
@@ -89,17 +88,43 @@ try {
             throw "Installer did not create expected file: $path"
         }
     }
+
+    Set-Content -LiteralPath $installedModule -Value '# stale module' -Encoding ascii
+    $binaryLock = [IO.File]::Open(
+        $installedBinary,
+        [IO.FileMode]::Open,
+        [IO.FileAccess]::Read,
+        [IO.FileShare]::Read
+    )
+    try {
+        & (Join-Path $repoRoot 'installers\install.ps1') @installArguments
+    } finally {
+        $binaryLock.Dispose()
+    }
+    if ((Get-FileHash -LiteralPath $installedModule).Hash -ne (Get-FileHash -LiteralPath $modulePath).Hash) {
+        throw 'Installer did not refresh the module while an identical installed tc.exe was in use.'
+    }
+
     & $installedBinary --version | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Installed binary version check failed.' }
     if (-not (Get-Command tc-start -ErrorAction SilentlyContinue)) {
         throw 'Installed PowerShell module did not expose tc-start.'
+    }
+    Remove-Item Env:TERMCTX_ID -ErrorAction SilentlyContinue
+    Initialize-TermContext -AutoPrompt
+    if ($env:TERMCTX_ID) {
+        throw 'Auto prompt ran during a PowerShell -Command or -File automation launch.'
     }
     $sessionId = tc-start -Name 'Installer test' -Description 'PowerShell round-trip'
     if (-not $sessionId) { throw 'tc-start did not create a session.' }
     tc-done | Out-Null
 
     $profileContent = Get-Content -Raw -LiteralPath $profilePath
-    if (($profileContent.Split('# >>> terminal-context >>>').Count - 1) -ne 1) {
+    $profileMarkerCount = [regex]::Matches(
+        $profileContent,
+        [regex]::Escape('# >>> terminal-context >>>')
+    ).Count
+    if ($profileMarkerCount -ne 1) {
         throw 'PowerShell profile integration is not idempotent.'
     }
     if ($profileContent -notmatch 'TERM_CONTEXT_BIN') {

@@ -87,6 +87,28 @@ function Test-LocalModulePolicy {
     return $Policy -in @('Bypass', 'Unrestricted', 'RemoteSigned')
 }
 
+function Copy-TermContextBinary {
+    param(
+        [Parameter(Mandatory)][string]$Source,
+        [Parameter(Mandatory)][string]$Destination
+    )
+
+    if (Test-Path -LiteralPath $Destination -PathType Leaf) {
+        $sourceHash = (Get-FileHash -LiteralPath $Source -Algorithm SHA256).Hash
+        $destinationHash = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash
+        if ($sourceHash -eq $destinationHash) {
+            Write-Host 'Installed tc.exe is already current; keeping the existing binary.'
+            return
+        }
+    }
+
+    try {
+        Copy-Item -LiteralPath $Source -Destination $Destination -Force -ErrorAction Stop
+    } catch [System.IO.IOException] {
+        throw "Could not update $Destination because it is in use. Close terminals running Terminal Context, then run the installer again. $($_.Exception.Message)"
+    }
+}
+
 function Set-TermContextCurrentUserExecutionPolicy {
     $setPolicyError = $null
     try {
@@ -151,7 +173,7 @@ if ($PSCmdlet.ShouldProcess($InstallRoot, 'Install Terminal Context')) {
     }
 
     New-Item -ItemType Directory -Force -Path $binDir, $moduleDir | Out-Null
-    Copy-Item -LiteralPath $BinaryPath -Destination $installedBinary -Force
+    Copy-TermContextBinary -Source $BinaryPath -Destination $installedBinary
     Copy-Item -LiteralPath $moduleSource -Destination $installedModule -Force
     Unblock-File -LiteralPath $installedBinary, $installedModule -ErrorAction SilentlyContinue
 

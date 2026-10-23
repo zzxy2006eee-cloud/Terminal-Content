@@ -469,6 +469,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
   -InstallCodexSkill -ConfigureExecutionPolicy
 ```
 
+安装器会在现有 `tc.exe` 与新版完全相同时保留正在使用的二进制，并继续更新 PowerShell 模块。如果二进制确实需要升级但正在被使用，安装器会提示关闭使用 Terminal Context 的终端后重试。
+
 ### `tc-run` 提示当前 Shell 未连接
 
 先运行：
