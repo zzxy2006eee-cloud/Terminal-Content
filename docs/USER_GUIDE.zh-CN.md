@@ -61,7 +61,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
 
 完成后关闭当前 PowerShell，再打开一个新 PowerShell。
 
-`-ExecutionPolicy Bypass` 只用于这次安装进程。`-ConfigureExecutionPolicy` 会在确有需要时，把当前用户的长期策略设为 `RemoteSigned`，不需要管理员权限，也不会修改计算机级策略。如果电脑由组织策略管理，安装器会停止并给出说明。若不希望安装器更改当前用户策略，可以省略 `-ConfigureExecutionPolicy`。
+`-ExecutionPolicy Bypass` 只用于这次安装进程。`-ConfigureExecutionPolicy` 会在确有需要时，把当前用户的长期策略设为 `RemoteSigned`，不需要管理员权限，也不会修改计算机级策略。安装器会正确处理安装进程自身的临时 `Process = Bypass` 覆盖；只有保存失败或电脑受组织策略管理时才会停止。若不希望安装器更改当前用户策略，可以省略 `-ConfigureExecutionPolicy`。
 
 安装器会依次查找：
 

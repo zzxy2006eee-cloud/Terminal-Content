@@ -87,6 +87,31 @@ function Test-LocalModulePolicy {
     return $Policy -in @('Bypass', 'Unrestricted', 'RemoteSigned')
 }
 
+function Set-TermContextCurrentUserExecutionPolicy {
+    $setPolicyError = $null
+    try {
+        Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force -ErrorAction Stop
+    } catch {
+        $setPolicyError = $_
+    }
+
+    $savedPolicy = Get-ExecutionPolicy -Scope CurrentUser
+    if ($savedPolicy -ne 'RemoteSigned') {
+        if ($setPolicyError) { throw $setPolicyError }
+        throw "CurrentUser execution policy is $savedPolicy after requesting RemoteSigned."
+    }
+
+    if ($setPolicyError) {
+        if ($setPolicyError.FullyQualifiedErrorId -notmatch '^ExecutionPolicyOverride') {
+            throw $setPolicyError
+        }
+        $processPolicy = Get-ExecutionPolicy -Scope Process
+        Write-Host "PowerShell execution policy saved as RemoteSigned for CurrentUser. The current installer process remains $processPolicy because its Process policy has higher precedence."
+    } else {
+        Write-Host 'PowerShell execution policy set to RemoteSigned for CurrentUser.'
+    }
+}
+
 $BinaryPath = Resolve-TermContextBinary -RequestedPath $BinaryPath
 $moduleSource = Join-Path $repoRoot 'shell\term-context.psm1'
 $skillSource = Join-Path $repoRoot 'skills\terminal-context'
@@ -120,12 +145,7 @@ if ($PSCmdlet.ShouldProcess($InstallRoot, 'Install Terminal Context')) {
         if (($machinePolicy -and $machinePolicy -ne 'Undefined') -or ($userPolicy -and $userPolicy -ne 'Undefined')) {
             throw "Execution policy is controlled by Group Policy ($currentPolicy). Ask your administrator to allow local PowerShell modules."
         }
-        Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
-        $currentPolicy = Get-EffectiveExecutionPolicy
-        if (-not (Test-LocalModulePolicy -Policy $currentPolicy)) {
-            throw "Execution policy remains $currentPolicy after requesting RemoteSigned."
-        }
-        Write-Host 'PowerShell execution policy set to RemoteSigned for CurrentUser.'
+        Set-TermContextCurrentUserExecutionPolicy
     } elseif ($policyNeedsChange) {
         Write-Warning "PowerShell execution policy is $currentPolicy. The profile integration may be blocked in new terminals. Re-run with -ConfigureExecutionPolicy if you want the installer to set CurrentUser to RemoteSigned."
     }
@@ -193,6 +213,6 @@ $end
 
     Write-Host ''
     Write-Host 'Terminal Context installed and verified.'
-    Write-Host 'Open a new PowerShell terminal, then try: tc --help, tc-start, tc-stop'
+    Write-Host 'Open a new PowerShell terminal, then try: tc --help, tc-start, tc-done'
     Write-Host 'The integration will load automatically from your PowerShell profile.'
 }

@@ -26,6 +26,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./tests/powershell/module.Tests.ps1
+      - name: Windows first-install execution policy
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/powershell/execution-policy.Tests.ps1
       - name: Bash integration syntax
         if: runner.os == 'Linux'
         shell: bash
