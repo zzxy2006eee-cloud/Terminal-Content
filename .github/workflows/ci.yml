@@ -22,6 +22,8 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: Rust tests
         run: cargo test --workspace
+      - name: Build integration-test binary
+        run: cargo build --workspace
       - name: PowerShell integration syntax
         if: runner.os == 'Windows'
         shell: pwsh
