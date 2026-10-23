@@ -6,12 +6,22 @@ if (-not $env:CI) {
 }
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$binaryPath = Join-Path $repoRoot 'target\debug\tc.exe'
-if (-not (Test-Path -LiteralPath $binaryPath -PathType Leaf)) {
-    throw "A built tc.exe is required for the execution-policy test: $binaryPath"
+$dataRoot = if ($env:TERM_CONTEXT_DEV_DATA) {
+    $env:TERM_CONTEXT_DEV_DATA
+} else {
+    Join-Path (Split-Path -Parent $repoRoot) 'data'
+}
+$binaryCandidates = @(
+    (Join-Path $repoRoot 'target\debug\tc.exe'),
+    (Join-Path $dataRoot 'target\debug\tc.exe'),
+    (Join-Path $dataRoot 'target\release\tc.exe')
+)
+$binaryPath = $binaryCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+if (-not $binaryPath) {
+    throw "A built tc.exe is required for the execution-policy test. Checked: $($binaryCandidates -join ', ')"
 }
 
-$sandboxParent = Join-Path $repoRoot 'target\test-sandboxes'
+$sandboxParent = Join-Path $dataRoot 'test-sandboxes'
 $sandbox = Join-Path $sandboxParent ("execution-policy-" + [guid]::NewGuid().ToString('N'))
 $installRoot = Join-Path $sandbox 'install'
 $profilePath = Join-Path $sandbox 'profile.ps1'
