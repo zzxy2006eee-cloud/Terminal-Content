@@ -15,12 +15,40 @@ function Get-TermContextExecutable {
     return $command.Source
 }
 
+function Invoke-TermContextUtf8Text {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Executable,
+        [Parameter(Mandatory)][string[]]$Arguments
+    )
+
+    $originalOutputEncoding = [Console]::OutputEncoding
+    $result = $null
+    $exitCode = 1
+    try {
+        # Rust writes UTF-8 when stdout is captured. Windows PowerShell 5.1
+        # otherwise decodes those bytes with the active legacy console code page.
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $result = & $Executable @Arguments 2>$null
+        $exitCode = $LASTEXITCODE
+    } finally {
+        [Console]::OutputEncoding = $originalOutputEncoding
+    }
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Text = ($result -join [Environment]::NewLine)
+    }
+}
+
 function Set-TermContextTitle {
     if (-not $env:TERMCTX_ID) { return }
     $executable = Get-TermContextExecutable
-    $title = & $executable title --id $env:TERMCTX_ID --max-length 64 2>$null
-    if ($LASTEXITCODE -eq 0 -and $title) {
-        try { $Host.UI.RawUI.WindowTitle = $title.Trim() } catch { }
+    $result = Invoke-TermContextUtf8Text -Executable $executable -Arguments @(
+        'title', '--id', $env:TERMCTX_ID, '--max-length', '64'
+    )
+    if ($result.ExitCode -eq 0 -and $result.Text) {
+        try { $Host.UI.RawUI.WindowTitle = $result.Text.Trim() } catch { }
     }
 }
 

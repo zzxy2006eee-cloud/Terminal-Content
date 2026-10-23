@@ -32,6 +32,10 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: ./tests/powershell/execution-policy.Tests.ps1
+      - name: Windows PowerShell UTF-8 terminal title
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./tests/powershell/title-encoding.Tests.ps1
       - name: Bash integration syntax
         if: runner.os == 'Linux'
         shell: bash

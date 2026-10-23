@@ -460,6 +460,15 @@ Get-ExecutionPolicy -List
 
 如果 `MachinePolicy` 或 `UserPolicy` 由组织统一设置，请联系管理员，不要尝试绕过组织策略。
 
+### Windows Terminal 标签标题出现乱码
+
+新版 PowerShell 模块会在读取 `tc title` 时按 UTF-8 解码，并在完成后恢复原来的控制台输出编码，不需要永久执行 `chcp 65001`。如果仍在使用旧版模块，请重新运行 Windows 安装器，然后关闭并重新打开 PowerShell：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\installers\install.ps1 `
+  -InstallCodexSkill -ConfigureExecutionPolicy
+```
+
 ### `tc-run` 提示当前 Shell 未连接
 
 先运行：

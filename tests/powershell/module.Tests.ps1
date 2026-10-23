@@ -8,7 +8,8 @@ $parseTargets = @(
     (Join-Path $repoRoot 'installers\uninstall.ps1'),
     (Join-Path $repoRoot 'scripts\dev.ps1'),
     (Join-Path $repoRoot 'skills\terminal-context\scripts\verify.ps1'),
-    (Join-Path $repoRoot 'tests\powershell\execution-policy.Tests.ps1')
+    (Join-Path $repoRoot 'tests\powershell\execution-policy.Tests.ps1'),
+    (Join-Path $repoRoot 'tests\powershell\title-encoding.Tests.ps1')
 )
 
 foreach ($target in $parseTargets) {

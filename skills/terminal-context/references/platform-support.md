@@ -4,6 +4,8 @@
 
 Import `shell/term-context.psm1`. `Start-TermContext` registers the parent PowerShell PID, sets `TERMCTX_ID`, and sets `$Host.UI.RawUI.WindowTitle`.
 
+The module decodes captured `tc title` output as UTF-8 and restores the original console output encoding afterward. This prevents mojibake in Windows PowerShell 5.1 terminals that use a legacy code page such as CP936.
+
 Windows Terminal must allow application-controlled titles. A profile configured with `suppressApplicationTitle: true` prevents the visible tab title from following the shell title.
 
 ## Bash on Linux
